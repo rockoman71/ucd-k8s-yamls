@@ -1,0 +1,62 @@
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: ucda
+  labels:
+    type: local
+spec:
+  capacity:
+    storage: 2Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/data/ucda/"
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: ucda-claim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: ucda
+  labels:
+    app: ucda
+spec:
+  replicas: 3
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: ucda
+        tier: ucda
+    spec:
+#      hostAliases:
+#      - ip: "10.103.128.63"
+#        hostnames:
+#        - "ucd-server"
+      containers:
+      - image: ibmcom/ucda:latest
+        name: ucda
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: ucda-persistent-storage
+          mountPath: /root/.ucda
+        - name: docker
+          mountPath: /var/run/docker.sock
+      volumes:
+      - name: docker
+        hostPath:
+          path: /var/run/docker.sock
+      - name: ucda-persistent-storage
+        persistentVolumeClaim:
+          claimName: ucda-claim

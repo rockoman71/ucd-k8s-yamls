@@ -1,0 +1,87 @@
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: ucds
+  labels:
+    type: local
+spec:
+  capacity:
+    storage: 2Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/data/ucds/"
+
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: ucds-claim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ucd-server
+  labels:
+    app: ucds
+spec:
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+    - name: https
+      port: 8443
+      targetPort: 8443
+    - name: jms
+      port: 7918
+      targetPort: 7918
+  selector:
+    app: ucds
+    tier: ucds
+  type: NodePort
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: ucds
+  labels:
+    app: ucds
+spec:
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: ucds
+        tier: ucds
+    spec:
+      containers:
+      - image: ibmcom/ucds:latest
+        name: ucds
+        securityContext:
+          privileged: true
+        ports:
+        - containerPort: 8080
+          name: http
+        - containerPort: 8443
+          name: https
+        - containerPort: 7918
+          name: jms
+        volumeMounts:
+        - name: ucds-persistent-storage
+          mountPath: /root/.ucds
+        - name: docker
+          mountPath: /var/run/docker.sock
+      volumes:
+      - name: docker
+        hostPath:
+          path: /var/run/docker.sock
+      - name: ucds-persistent-storage
+        persistentVolumeClaim:
+          claimName: ucds-claim
