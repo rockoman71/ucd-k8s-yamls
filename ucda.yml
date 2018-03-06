@@ -30,7 +30,7 @@ metadata:
   labels:
     app: ucda
 spec:
-  replicas: 3
+  replicas: 2
   strategy:
     type: Recreate
   template:
@@ -51,12 +51,7 @@ spec:
         volumeMounts:
         - name: ucda-persistent-storage
           mountPath: /root/.ucda
-        - name: docker
-          mountPath: /var/run/docker.sock
       volumes:
-      - name: docker
-        hostPath:
-          path: /var/run/docker.sock
       - name: ucda-persistent-storage
         persistentVolumeClaim:
           claimName: ucda-claim

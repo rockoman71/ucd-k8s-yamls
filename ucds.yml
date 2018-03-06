@@ -76,12 +76,7 @@ spec:
         volumeMounts:
         - name: ucds-persistent-storage
           mountPath: /root/.ucds
-        - name: docker
-          mountPath: /var/run/docker.sock
       volumes:
-      - name: docker
-        hostPath:
-          path: /var/run/docker.sock
       - name: ucds-persistent-storage
         persistentVolumeClaim:
           claimName: ucds-claim
