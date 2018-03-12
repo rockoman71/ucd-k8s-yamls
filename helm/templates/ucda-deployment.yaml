@@ -1,0 +1,28 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ template "ucda.fullname" . }}
+  labels:
+    app: {{ template "ucda.fullname" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.ucda.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "ucda.fullname" . }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.ucda.image.repository }}:{{ .Values.ucda.image.tag }}"
+        imagePullPolicy: {{ .Values.ucda.image.pullPolicy }}
+        volumeMounts:
+        - name: ucda-persistent-storage
+          mountPath: /root/.ucda
+      volumes:
+      - name: ucda-persistent-storage
+        persistentVolumeClaim:
+          claimName: {{ template "ucda.fullname" . }}

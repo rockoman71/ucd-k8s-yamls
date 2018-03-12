@@ -1,0 +1,35 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ template "ucds.fullname" . }}
+  labels:
+    app: {{ template "ucds.fullname" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.ucds.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "ucds.fullname" . }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.ucds.image.repository }}:{{ .Values.ucds.image.tag }}"
+        imagePullPolicy: {{ .Values.ucds.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.ucds.service.httpInternalPort }}
+          name: http              
+        - containerPort: {{ .Values.ucds.service.httpsInternalPort }}
+          name: https
+        - containerPort: {{ .Values.ucds.service.jmsInternalPort }}
+          name: jms
+        volumeMounts:
+        - name: ucds-persistent-storage
+          mountPath: /root/.ucds
+      volumes:
+      - name: ucds-persistent-storage
+        persistentVolumeClaim:
+          claimName: {{ template "ucds.fullname" . }}

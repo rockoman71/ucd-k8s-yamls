@@ -1,0 +1,4 @@
+apiVersion: v1
+description: A UrbanCode Helm chart for Kubernetes
+name: ucd
+version: 0.1.0
